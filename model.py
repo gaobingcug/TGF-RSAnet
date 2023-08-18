@@ -21,8 +21,6 @@ class RSnet(nn.Module):
         self.conv_content = nn.Conv2d(64*2, 1, 1, 1, 0, bias=True)
 
         # edge branch
-        # self.begin_edge_dem = nn.Conv2d(1, 64, 3, 1, 1, bias=True)
-        # self.begin_edge_rs = nn.Conv2d(1, 64, 3, 1, 1, bias=True)
         self.fusion_edge_1 = RPAB(64)
         self.conv_edge = nn.Conv2d(64, 1, 1, 1, 0, bias=True)
 
@@ -46,8 +44,6 @@ class RSnet(nn.Module):
         for i in range(4):
             fusion = self.__getattr__('AB' + str(i + 1))(fea)
         buffer_fusion = self.conv_content(fusion)
-        # for i in range(4):
-        #     right_fusion = self.__getattr__('RCAB' + str(i + 1))(right)
 
         edge_lr = kornia.filters.sobel(left)
         edge_rs = kornia.filters.sobel(registration_rs)

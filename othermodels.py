@@ -84,73 +84,6 @@ class ResB(nn.Module):
         return out + x
 
 
-class CALayer(nn.Module):
-    def __init__(self, channel, reduction=16):
-        super(CALayer, self).__init__()
-        # global average pooling: feature --> point
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        # self.max_pool = nn.AdaptiveMaxPool2d(1)
-        # feature channel downscale and upscale --> channel weight
-        self.conv_du = nn.Sequential(
-            nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
-            nn.LeakyReLU(0.1, inplace=True),
-            nn.Conv2d(channel // reduction, channel, 1, padding=0, bias=True),
-        )
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x):
-        y1 = self.avg_pool(x)
-        # y2 = self.max_pool(x)
-        y = self.conv_du(y1)
-        y = self.sigmoid(y)
-        return x*y
-
-
-# Residual Channel Attention Block (RCAB)
-class RCAB(nn.Module):
-    def __init__(self, channel, reduction=16):
-        super(RCAB, self).__init__()
-        self.head = nn.Sequential(
-            nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
-            nn.LeakyReLU(0.1, inplace=True),
-            nn.Conv2d(channel // reduction, channel, 1, padding=0, bias=True),
-        )
-        self.atte = CALayer(channel)
-
-    def forward(self, x):
-        res = self.head(x)
-        res = self.atte(res)
-        res += x
-        return res
-
-
-# class AB(nn.Module):
-#     def __init__(self, channel, reduction=16):
-#         super(AB, self).__init__()
-#         self.head = nn.Sequential(
-#             nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
-#             nn.LeakyReLU(0.1, inplace=True),
-#             nn.Conv2d(channel // reduction, channel, 1, padding=0, bias=True),
-#         )
-#         self.pixel = nn.Sequential(
-#             nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
-#             nn.LeakyReLU(0.1, inplace=True),
-#             nn.Conv2d(channel // reduction, 1, 1, padding=0, bias=True),
-#         )
-#         self.atte = nn.Sigmoid()
-#         self.ca = CALayer(channel)
-#
-#     def forward(self, x):
-#         res = self.head(x)
-#
-#         res_pixel = self.pixel(res)
-#         res_pixel = self.atte(res_pixel)
-#         res = x*res_pixel
-#         res_channel = self.ca(res)
-#         res = res_channel+x
-#         return res
-
-#
 class AB(nn.Module):
     def __init__(self, channel, reduction=16):
         super(AB, self).__init__()
@@ -159,25 +92,18 @@ class AB(nn.Module):
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(channel // reduction, channel, 3, padding=1, bias=True),
         )
-        # self.pixel = nn.Sequential(
-        #     nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
-        #     nn.LeakyReLU(0.1, inplace=True),
-        #     nn.Conv2d(channel // reduction, 1, 1, padding=0, bias=True),
-        # )
-        # self.atte = nn.Sigmoid()
-        # self.ca = CALayer(channel)
-        self.cbam = CBAMLayer(channel)
+        self.scab = SCABLayer(channel)
 
     def forward(self, x):
         res = self.head(x)
-        res = self.cbam(res)
+        res = self.scab(res)
         res = res+x
         return res
 
 
-class CBAMLayer(nn.Module):
+class SCABLayer(nn.Module):
     def __init__(self, channel, reduction=16, spatial_kernel=7):
-        super(CBAMLayer, self).__init__()
+        super(SCABLayer, self).__init__()
 
         # channel attention 压缩H,W为1
         self.max_pool = nn.AdaptiveMaxPool2d(1)
@@ -185,25 +111,18 @@ class CBAMLayer(nn.Module):
 
         # shared MLP
         self.mlp = nn.Sequential(
-            # Conv2d比Linear方便操作
-            # nn.Linear(channel, channel // reduction, bias=False)
             nn.Conv2d(channel, channel // reduction, 1, bias=False),
-            # inplace=True直接替换，节省内存
             nn.ReLU(inplace=True),
-            # nn.Linear(channel // reduction, channel,bias=False)
             nn.Conv2d(channel // reduction, channel, 1, bias=False)
         )
 
         # spatial attention
-        self.conv = nn.Conv2d(1, 1, kernel_size=spatial_kernel,
-                              padding=spatial_kernel // 2, bias=False)
+        self.conv = nn.Conv2d(1, 1, kernel_size=spatial_kernel, padding=spatial_kernel // 2, bias=False)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        # max_out, _ = torch.max(x, dim=1, keepdim=True)
         avg_out = torch.mean(x, dim=1, keepdim=True)
         spatial_out = self.sigmoid(self.conv(avg_out))
-        # spatial_out = self.sigmoid(self.conv(torch.cat([max_out, avg_out], dim=1)))
         x = spatial_out * x
 
         max_out = self.mlp(self.max_pool(x))
@@ -213,33 +132,6 @@ class CBAMLayer(nn.Module):
         return x
 
 
-# class AB(nn.Module):
-#     def __init__(self, channel, reduction=16):
-#         super(AB, self).__init__()
-#         self.head = nn.Sequential(
-#             nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
-#             nn.LeakyReLU(0.1, inplace=True),
-#             nn.Conv2d(channel // reduction, channel, 1, padding=0, bias=True),
-#         )
-#         self.pixel = nn.Sequential(
-#             nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
-#             nn.LeakyReLU(0.1, inplace=True),
-#             nn.Conv2d(channel // reduction, 1, 1, padding=0, bias=True),
-#         )
-#         self.atte = nn.Sigmoid()
-#         self.ca = CALayer(channel)
-#
-#     def forward(self, x):
-#         res = self.head(x)
-#         res_pixel = self.pixel(res)
-#         res_pixel = self.atte(res_pixel)
-#         res_channel = self.ca(res)
-#         res = x*res_pixel*res_channel
-#         res += x
-#         return res
-
-
-# Residual Pixel Attention Block (RCAB)
 class RPAB(nn.Module):
     def __init__(self, channels):
         super(RPAB, self).__init__()
@@ -250,7 +142,6 @@ class RPAB(nn.Module):
         )
 
         self.encode = nn.Sequential(
-            # nn.Conv2d(channels, channels, 1, 1, 0),
             nn.Conv2d(channels, channels//16, 1, 1, 0),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(channels//16, channels, 1, 1, 0),
