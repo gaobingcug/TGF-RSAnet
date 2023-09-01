@@ -92,11 +92,11 @@ class AB(nn.Module):
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(channel // reduction, channel, 3, padding=1, bias=True),
         )
-        self.scab = SCABLayer(channel)
+        self.cbam = SCABLayer(channel)
 
     def forward(self, x):
         res = self.head(x)
-        res = self.scab(res)
+        res = self.cbam(res)
         res = res+x
         return res
 
