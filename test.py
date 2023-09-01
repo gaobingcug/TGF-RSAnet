@@ -28,7 +28,7 @@ import time
 ######################################################
 from DeviceSetting import device
 from model import RSnet as srnet
-from DEM_features import Slope_net, Aspect_net, RDLS_net
+from DEM_features import Slope_net, Aspect_net
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--workers', type=int, default=1, help='number of data loading workers')
