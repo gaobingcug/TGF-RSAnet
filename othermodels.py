@@ -1,3 +1,5 @@
+# This code file is about the various modules used in the network, you can refer to the third chapter of the paper to view
+
 import numpy as np
 import torch
 import torch.nn as nn
