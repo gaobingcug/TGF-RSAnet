@@ -1,3 +1,5 @@
+# This code file mainly includes the functions used by the network, including loss function, evaluation metric, normalization, and dataset construction.
+
 import numpy as np
 import torch
 import torch.nn as nn
