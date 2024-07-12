@@ -1,3 +1,5 @@
+# This code file is used for the training of the TGF-RSAnet
+
 import argparse
 import os
 import sys
