@@ -13,6 +13,6 @@ torchvision==0.10.0
 * Description: This dataset included a part of 3× test sets, which were obtained from TanDEM-X and Sentienl-2. The dataset contains a total of 500 144*144 data pairs. Each data pair contains one HR DEM, one LR DEM and one RS image. Complete DEM and remote sensing images can be obtained from https://www.intelligence-airbusds.com and https://earthexplorer.usgs.gov/, respectively.
 * Download the dataset from the following link: [Baidu cloud disk](https://pan.baidu.com/s/12S4BwgRoJsZoD0uZrrkqGQ?pwd=lxum) (code:lxum)
 # pre-train model
-* Description: We offer pre-trained models for 2×, 3× and 4× super-resolution pre-trained models, which were located in the checkpoints folder.
+* Description: We offer pre-trained models for 2×, 3× and 4× super-resolution pre-trained models, which were located in the checkpoints folder.If necessary, the pre-trained model can be directly invoked to test the network.
 # Acknowledgement
 Thanks for the excellent work and codebase of TfaSR! 
