@@ -1,3 +1,5 @@
+# This code file is the main structure of the network and can be viewed against Fig.1 in the paper
+
 import kornia
 from mmcv.ops.modulated_deform_conv import ModulatedDeformConv2dPack as DCN
 from othermodels import *
