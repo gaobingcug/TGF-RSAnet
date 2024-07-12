@@ -1,3 +1,4 @@
+# This code file is used to calculate DEM slope and aspect
 import torch.nn as nn
 import torch
 from torch.nn import functional as F
