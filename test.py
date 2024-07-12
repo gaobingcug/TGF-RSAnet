@@ -1,3 +1,4 @@
+# This code file is used for the testing of the TGF-RSAnet, run this file if you want to test the network
 import argparse
 import csv
 import sys
