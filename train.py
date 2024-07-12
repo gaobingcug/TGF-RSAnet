@@ -1,4 +1,4 @@
-# This code file is used for the training of the TGF-RSAnet
+# This code file is used for the training of the TGF-RSAnet, run this file if you want to train the network
 
 import argparse
 import os
